@@ -1,20 +1,16 @@
-#include <WiFi.h>
-#include <ArduinoWebsockets.h>
+#include "drivers/CameraDriver.h"
 #include "esp_system.h"
-#include <smartlock_module.h>
 #include "board_config.h"
 #include "esp_camera.h"
+#include <WiFi.h>
 
-using namespace websockets;
+CameraDriver::CameraDriver(){}
 
-
-// ===================== Setup / Loop ==========================
-const char* ssid     = "BEN";
-const char* password = "Ben.1234";
 
 void startCameraServer();
-void smartlockSendCameraFrame();
-void setup() {
+void setupLedFlash();
+
+void CameraDriver::begin() {
 
 
   // ===========================
@@ -75,11 +71,14 @@ void setup() {
     return;
   }
 
+  // camera settings
   sensor_t* s = esp_camera_sensor_get();
   if (s->id.PID == OV3660_PID) {
     s->set_vflip(s, 1);
     s->set_brightness(s, 1);
     s->set_saturation(s, -2);
+     s->set_framesize(s, FRAMESIZE_HD);
+
   }
   if (config.pixel_format == PIXFORMAT_JPEG) {
     s->set_framesize(s, FRAMESIZE_QVGA);
@@ -98,33 +97,10 @@ void setup() {
   setupLedFlash();
 #endif
 
-  Serial.begin(115200);
-
-  Serial.println("Connecting to WiFi...");
-  WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nWiFi connected!");
-  Serial.print("IP: ");
-  Serial.println(WiFi.localIP());
-
-
-  SmartLock_setup();
   // Start camera HTTP server
-  startCameraServer();
-  Serial.print("Camera Ready! Use 'http://");
-  Serial.print(WiFi.localIP());
-  Serial.println("' to connect");
+  // startCameraServer();
+  // Serial.print("Camera Ready! Use 'http://");
+  // Serial.print(WiFi.localIP());
+  // Serial.println("' to connect");
 
-}
-
-void loop() {
-
-  SmartLock_loop();
-
-
-  delay(50);
 }
